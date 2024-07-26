@@ -1,0 +1,7 @@
+name: RoomManager
+version: '${project.version}'
+main: dev.voxellab.roommanager.Main
+api-version: '1.20'
+depend:
+  - GameFramework
+  - FastAsyncWorldEdit

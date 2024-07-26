@@ -1,0 +1,180 @@
+ 
+package dev.voxellab;
+
+import com.onarandombox.MultiverseCore.MultiverseCore;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
+import org.bukkit.Particle;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Slime;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public final class RoomsContainerManager extends JavaPlugin {
+    static RoomsContainerManager instance;
+
+    MultiverseCore mvCore = (MultiverseCore) Bukkit.getServer().getPluginManager().getPlugin("Multiverse-Core");
+
+    List<RoomsManager> roomsContainerList = new ArrayList<RoomsManager>();
+    int roomsContainerIdCounter = 0;
+
+    public static RoomsContainerManager getInstance() {
+        return instance;
+    }
+
+    public void createRoomsContainer() {
+        int roomsContainerId = roomsContainerIdCounter++;
+        RoomsManager roomsManager = new RoomsManager(roomsContainerId);
+        roomsContainerList.add(roomsManager);
+    }
+
+    public void deleteRoomsContainer(int roomsContainerId) {
+        for (RoomsManager roomsManager : roomsContainerList) {
+            if (roomsManager.getRoomsContainerId() != roomsContainerId) continue;
+
+            mvCore.getMVWorldManager().deleteWorld("rooms_container_" + roomsContainerId);
+            roomsContainerList.remove(roomsManager);
+            break;
+        }
+    }
+
+    public RoomsManager getLeastPlayerRoomsContainer() {
+        RoomsManager leastPlayerRoomsManager = null;
+        for (RoomsManager roomsManager : roomsContainerList) {
+            if (leastPlayerRoomsManager == null) {
+                leastPlayerRoomsManager = roomsManager;
+                continue;
+            }
+
+            if (roomsManager.getPlayerCount() < leastPlayerRoomsManager.getPlayerCount()) {
+                leastPlayerRoomsManager = roomsManager;
+            }
+        }
+
+        return leastPlayerRoomsManager;
+    }
+
+    public RoomsManager getLeastRoomsRoomsContainer() {
+        RoomsManager leastRoomsRoomsManager = null;
+        for (RoomsManager roomsManager : roomsContainerList) {
+            if (leastRoomsRoomsManager == null) {
+                leastRoomsRoomsManager = roomsManager;
+                continue;
+            }
+
+            if (roomsManager.getRoomsCount() < leastRoomsRoomsManager.getRoomsCount()) {
+                leastRoomsRoomsManager = roomsManager;
+            }
+        }
+
+        return leastRoomsRoomsManager;
+    }
+
+    @Override
+    public void onEnable() {
+        instance = this;
+//        MultiverseWorld world = mvCore.getMVWorldManager().getMVWorld("rooms_empty_sample");
+        Bukkit.getPluginManager().registerEvents(new Events(), this);
+
+        AtomicBoolean isLeavingPlayers = new AtomicBoolean(false);
+
+        for (Player i: Bukkit.getOnlinePlayers()){
+            Bukkit.getScheduler().runTaskTimer(this, () -> {
+                if (!i.getScoreboardTags().contains("dirty")) return;
+                i.getWorld().spawnParticle(
+                        Particle.SPELL_MOB,
+                        i.getLocation().add(0.5-(1*Math.random()), 2-(2*Math.random()), 0.5-(1*Math.random())),
+                        0,
+                        0,
+                        1,
+                        0,
+                        0.8
+                );
+                i.getWorld().spawnParticle(
+                        Particle.SPELL_MOB,
+                        i.getLocation().add(0.5-(1*Math.random()), 2-(2*Math.random()), 0.5-(1*Math.random())),
+                        0,
+                        3,
+                        0.02,
+                        0.01,
+                        0.4
+                );
+            }, 0, 1);
+
+            if (!i.getPlayer().getName().equals("codingbearOwO")) continue;
+            for (int ii =0; ii< 100; ii++){
+                Slime slime = (Slime) (i.getWorld().spawnEntity(i.getLocation(), EntityType.SLIME));
+                slime.setSize(1);
+                slime.setAware(false);
+                AttributeInstance attributeInstance = slime.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                attributeInstance.setBaseValue(10.0D);
+                slime.setHealth(10.0D);
+                slime.setCustomNameVisible(false);
+
+                Bukkit.getScheduler().runTaskTimer(this, () -> {
+                    HashSet<Player> players = new HashSet<>();
+                    for (Player j: Bukkit.getOnlinePlayers()){
+                        if (!j.getScoreboardTags().contains("dirty")) continue;
+                        if (j.getLocation().distance(slime.getLocation()) < 15) players.add(j);
+                    }
+
+
+                    slime.setCustomNameVisible(!players.isEmpty());
+                    slime.customName(MiniMessage.miniMessage().deserialize(""));
+                    if (!players.isEmpty()) {
+                        slime.customName(MiniMessage.miniMessage().deserialize("           <gradient:red:gold><bold>!!!!</bold></gradient>"));
+                    }
+
+                    Bukkit.getScheduler().runTaskLater(this, () -> {
+                        if (players.isEmpty()) {
+                            Vector aiMove = (new Vector(0.1, 0, 0)).rotateAroundY(Math.random()*Math.PI*2);
+                            slime.teleport(slime.getLocation().setDirection(aiMove));
+                            aiMove = aiMove.setY(0.5);
+                            slime.setVelocity(aiMove);
+
+                            return;
+                        }
+
+                        Vector slimeVelocity = new Vector();
+
+                        for (Player j: players){
+                            Vector between = slime.getLocation().subtract(j.getLocation()).toVector();
+                            between.setY(0);
+                            double length = between.length();
+
+                            Vector velocity = between.divide(
+                                    new Vector(length, length, length)
+                            );
+
+                            velocity = velocity.setY(0.7);
+
+                            if (Double.isNaN(velocity.getX())) velocity.setX(0.1);
+                            if (Double.isNaN(velocity.getY())) velocity.setY(0.1);
+                            if (Double.isNaN(velocity.getZ())) velocity.setZ(0.1);
+
+                            slimeVelocity.add(velocity);
+                        }
+
+                        slimeVelocity = slimeVelocity.multiply(1.0/players.size());
+
+                        slime.teleport(slime.getLocation().setDirection(slimeVelocity));
+
+                        slime.setVelocity(slimeVelocity);
+                    }, 1);
+                }, 0, 20);
+            }
+        }
+
+    }
+
+    @Override
+    public void onDisable() {
+        // Plugin shutdown logic
+    }
+}
