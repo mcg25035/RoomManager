@@ -4,7 +4,6 @@ import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.regions.Region;
-import com.sk89q.worldedit.util.task.progress.Progress;
 import dev.voxellab.roommanager.Main;
 import org.bukkit.Location;
 
@@ -41,12 +40,13 @@ public class WeAPI {
         return clipboard;
     }
 
-    public static void placeClipboard(Clipboard clipboard, Location placeLocation, boolean ignoreAir) {
+    public static void placeClipboard(Clipboard clipboard, Location placeLocation, boolean ignoreAir, boolean shouldCopyEntities) {
         if(clipboard == null) return;
         try (EditSession editSession = WorldEdit.getInstance().newEditSession(FaweAPI.getWorld(placeLocation.getWorld().getName()))) {
             @SuppressWarnings("resource")
             Operation operation = new ClipboardHolder(clipboard)
                     .createPaste(editSession)
+                    .copyBiomes(shouldCopyEntities)
                     .to(BlockVector3.at(placeLocation.getX(), placeLocation.getY(), placeLocation.getZ()))
                     .ignoreAirBlocks(ignoreAir)
                     .build();

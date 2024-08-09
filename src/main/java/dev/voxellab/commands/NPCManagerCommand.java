@@ -3,12 +3,13 @@ package dev.voxellab.commands;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.StringArgument;
 import dev.voxellab.roommanager.config.MapConfig;
+import dev.voxellab.roommanager.config.NPCConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
 
-public class MapManagerCommand {
+public class NPCManagerCommand {
     public static CommandAPICommand command() {
         return new CommandAPICommand("map_manager")
                 .withSubcommand(create());
@@ -16,21 +17,27 @@ public class MapManagerCommand {
 
     private static CommandAPICommand create() {
         return new CommandAPICommand("create")
-                .withArguments(new StringArgument("mapName"))
+                .withArguments(new StringArgument("map_id"))
+                .withArguments(new StringArgument("conversation_id"))
+                .withArguments(new StringArgument("npc_id"))
                 .executes((sender, args) -> {
-                    String mapName = (String) (args.get("mapName"));
+                    String mapId = (String) (args.get("map_id"));
+                    String conversationId = (String) (args.get("conversation_id"));
+                    String npcId = (String) (args.get("npc_id"));
                     Player player = (Player) sender;
                     try {
-                        MapConfig.create();
+                        NPCConfig.create(mapId, ((Player) sender).getLocation(), conversationId, npcId);
                     } catch (IOException e) {
                         player.sendMessage(MiniMessage.miniMessage().deserialize(
-                                "<red>Failed to create map</red>"
+                                "<red>Failed to create npc</red>"
                         ));
                         e.printStackTrace();
                     }
                     player.sendMessage(MiniMessage.miniMessage().deserialize(
-                            "<green>Map created</green>"
+                            "<green>NPC created</green>"
                     ));
                 });
     }
+
+
 }

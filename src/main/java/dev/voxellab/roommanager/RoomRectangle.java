@@ -1,14 +1,14 @@
 package dev.voxellab.roommanager;
 
-import org.bukkit.Location;
+import dev.voxellab.roommanager.config.MapConfig;
 
 public class RoomRectangle {
-    static int roomGap = 5;
-    int x1;
-    int z1;
-    int x2;
-    int z2;
-    MapConfig config;
+    public static int roomGap = 5;
+    public int x1;
+    public int z1;
+    public int x2;
+    public int z2;
+    public MapConfig config;
 
     public RoomRectangle(int x, int z, MapConfig config) {
         this.x1 = x;

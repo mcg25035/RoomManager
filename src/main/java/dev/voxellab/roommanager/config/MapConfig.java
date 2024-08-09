@@ -1,4 +1,4 @@
-package dev.voxellab.roommanager;
+package dev.voxellab.roommanager.config;
 
 import dev.voxellab.utils.PointTools;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -9,22 +9,22 @@ import java.nio.file.Path;
 public class MapConfig {
     static Path mapConfigPath = Path.of("maps/");
 
-    String mapName;
-    String mapId;
-    String scripts;
-    String names;
-    String loots;
-    String embeds;
-    int mapX1;
-    int mapZ1;
-    int mapX2;
-    int mapZ2;
-    int spawnX;
-    int spawnY;
-    int spawnZ;
-    int playerMaxCount;
-    int playerMinCount;
-    int maxTime;
+    public String mapName;
+    public String mapId;
+    public String scripts;
+    public String names;
+    public String loots;
+    public String embeds;
+    public int mapX1;
+    public int mapZ1;
+    public int mapX2;
+    public int mapZ2;
+    public int spawnX;
+    public int spawnY;
+    public int spawnZ;
+    public int playerMaxCount;
+    public int playerMinCount;
+    public int maxTime;
 
     private MapConfig() {
     }

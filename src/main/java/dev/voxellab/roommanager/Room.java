@@ -128,11 +128,12 @@ public class Room extends RoomRectangle {
         FaweAPI.getTaskManager().async(()->{
             Location loc1 = new Location(Bukkit.getServer().getWorld("sample1"), config.mapX1, -64, config.mapZ1);
             Location loc2 = new Location(Bukkit.getServer().getWorld("sample1"), config.mapX2, 320, config.mapZ2);
-            Clipboard clipboard = WeAPI.copyClipboard(loc1, loc2, false);
+            Clipboard clipboard = WeAPI.copyClipboard(loc1, loc2, true);
             WeAPI.placeClipboard(
                     clipboard,
                     new Location(Bukkit.getServer().getWorld("rooms_empty_sample"), innerX1, -64, innerZ1),
-                    false
+                    false,
+                    true
             );
             Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), ()->{
                 faweTaskPromise.complete(id);

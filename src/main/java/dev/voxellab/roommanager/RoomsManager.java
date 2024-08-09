@@ -1,5 +1,7 @@
 package dev.voxellab.roommanager;
 
+import dev.voxellab.roommanager.config.MapConfig;
+
 import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
 

@@ -3,7 +3,7 @@ package dev.voxellab.commands;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.IntegerArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
-import dev.voxellab.roommanager.MapConfig;
+import dev.voxellab.roommanager.config.MapConfig;
 import dev.voxellab.roommanager.Room;
 import dev.voxellab.roommanager.RoomsManager;
 import net.kyori.adventure.text.minimessage.MiniMessage;
