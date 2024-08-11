@@ -1,6 +1,7 @@
 package dev.voxellab.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import dev.voxellab.roommanager.config.MapConfig;
 import dev.voxellab.roommanager.config.NPCConfig;
@@ -19,16 +20,16 @@ public class NPCManagerCommand {
         return new CommandAPICommand("create")
                 .withArguments(new StringArgument("map_id"))
                 .withArguments(new StringArgument("conversation_id"))
-                .withArguments(new StringArgument("npc_id"))
                 .withArguments(new StringArgument("skin_name"))
+                .withArguments(new GreedyStringArgument("npc_name"))
                 .executes((sender, args) -> {
                     String mapId = (String) (args.get("map_id"));
                     String conversationId = (String) (args.get("conversation_id"));
-                    String npcId = (String) (args.get("npc_id"));
+                    String npcName = (String) (args.get("npc_name"));
                     String skinName = (String) (args.get("skin_name"));
                     Player player = (Player) sender;
                     try {
-                        NPCConfig.create(mapId, ((Player) sender).getLocation(), conversationId, npcId, skinName);
+                        NPCConfig.create(mapId, ((Player) sender).getLocation(), conversationId, npcName, skinName);
                     } catch (IOException e) {
                         player.sendMessage(MiniMessage.miniMessage().deserialize(
                                 "<red>Failed to create npc</red>"
