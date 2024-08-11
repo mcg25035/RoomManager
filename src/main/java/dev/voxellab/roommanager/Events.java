@@ -1,7 +1,17 @@
 package dev.voxellab.roommanager;
 
 import io.papermc.paper.event.entity.EntityMoveEvent;
+import net.citizensnpcs.api.event.NPCClickEvent;
+import net.citizensnpcs.api.event.NPCRightClickEvent;
+import net.citizensnpcs.api.npc.NPC;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.logger.BetonQuestLogger;
+import org.betonquest.betonquest.conversation.Conversation;
+import org.betonquest.betonquest.conversation.ConversationData;
+import org.betonquest.betonquest.database.PlayerData;
+import org.betonquest.betonquest.id.ConversationID;
+import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.*;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
@@ -54,6 +64,20 @@ public class Events implements Listener {
             if (roomPlayerIn.isEntityInRoom(event.getVehicle())) continue;
             event.getVehicle().remove();
         }
+    }
+
+    @EventHandler
+    void NPCRightClickEvent(NPCRightClickEvent event) {
+        NPC npc = event.getNPC();
+        ConversationID conversationId = Room.conversation.get(npc);
+        if (conversationId == null) return;
+        BetonQuestLogger logger = BetonQuest.getInstance().getLoggerFactory().create(Main.getInstance());
+        new Conversation(
+                logger,
+                PlayerConverter.getID(event.getClicker()),
+                conversationId,
+                npc.getEntity().getLocation()
+        );
     }
 
     @EventHandler

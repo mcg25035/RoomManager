@@ -2,6 +2,7 @@ package dev.voxellab.roommanager;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import dev.voxellab.commands.MapManagerCommand;
+import dev.voxellab.commands.NPCManagerCommand;
 import dev.voxellab.commands.RoomManagerCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,6 +29,7 @@ public final class Main extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new Events(), this);
 
         MapManagerCommand.command().register();
+        NPCManagerCommand.command().register();
         RoomManagerCommand.command().register();
     }
 

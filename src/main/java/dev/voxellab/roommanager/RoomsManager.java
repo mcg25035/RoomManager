@@ -37,7 +37,6 @@ public class RoomsManager {
         Room room = Room.getRoomById(id);
         if (room == null) return CompletableFuture.completedFuture(null);
         rooms.remove(room);
-        room.gamePlugin.unload();
         return room.deleteRoom();
     }
 }

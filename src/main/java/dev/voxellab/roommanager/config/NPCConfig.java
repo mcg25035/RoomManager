@@ -18,12 +18,13 @@ public class NPCConfig {
     public double npcYaw;
     public double npcPitch;
     public String npcName;
+    public String skinName;
     public String conversationId;
 
     private NPCConfig() {
     }
 
-    public static void create(String mapId, Location location, String conversationId, String npcName) throws IOException {
+    public static void create(String mapId, Location location, String conversationId, String npcName, String skinName) throws IOException {
         NPCConfig npcConfig = new NPCConfig();
         npcConfig.npcName = npcName;
         npcConfig.npcX = location.getX();
@@ -32,6 +33,7 @@ public class NPCConfig {
         npcConfig.npcYaw = location.getYaw();
         npcConfig.npcPitch = location.getPitch();
         npcConfig.conversationId = conversationId;
+        npcConfig.skinName = skinName;
         npcConfig.save(mapId, npcName);
     }
 
@@ -49,6 +51,7 @@ public class NPCConfig {
         npcConfig.npcYaw = yaml.getDouble("npcYaw");
         npcConfig.npcPitch = yaml.getDouble("npcPitch");
         npcConfig.conversationId = yaml.getString("conversationId");
+        npcConfig.skinName = yaml.getString("skinName");
         return npcConfig;
     }
 
@@ -95,6 +98,7 @@ public class NPCConfig {
         yaml.set("npcYaw", npcYaw);
         yaml.set("npcPitch", npcPitch);
         yaml.set("conversationId", conversationId);
+        yaml.set("skinName", skinName);
         yaml.save(mapNpcConfigPath.resolve(filename).toFile());
     }
 }

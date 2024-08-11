@@ -3,10 +3,22 @@ package dev.voxellab.roommanager;
 import com.fastasyncworldedit.core.FaweAPI;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import dev.voxellab.gameframework.GamePlugin;
+import dev.voxellab.roommanager.config.NPCConfig;
 import dev.voxellab.worldedit.WeAPI;
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.trait.SkinTrait;
+import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.config.quest.QuestPackage;
+import org.betonquest.betonquest.config.Config;
+import org.betonquest.betonquest.conversation.Conversation;
+import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
+import org.betonquest.betonquest.id.ConversationID;
+import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -21,9 +33,12 @@ public class Room extends RoomRectangle {
     public static HashMap<Player, Room> playerRoom = new HashMap<>();
     public static HashMap<Player, Location> playerLastAvailableLocation = new HashMap<>();
     public static HashMap<Entity, Integer> entityRoom = new HashMap<>();
+    public static HashMap<NPC, Room> npcRoom = new HashMap<>();
+    public static HashMap<NPC, ConversationID> conversation = new HashMap<>();
     GamePlugin gamePlugin;
 
     public HashSet<Player> joinedPlayers = new HashSet<>();
+    public HashSet<NPC> npcs = new HashSet<>();
 
     int id;
 
@@ -69,6 +84,31 @@ public class Room extends RoomRectangle {
         gamePlugin = GamePlugin.getMapPlugin(config.mapId, this);
 
         rooms.put(id, this);
+
+        NPCConfig.loadAll(config.mapId).forEach(npcConfig -> {
+            try {
+                loadNPC(npcConfig);
+            } catch (ObjectNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public void loadNPC(NPCConfig npcConfig) throws ObjectNotFoundException {
+        NPC npc = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, npcConfig.npcName);
+        npc.spawn(fromSample(npcConfig.npcX, npcConfig.npcY, npcConfig.npcZ));
+        SkinTrait skinTrait = npc.getTrait(SkinTrait.class);
+        skinTrait.setSkinName(npcConfig.skinName);
+        npcs.add(npc);
+        npcRoom.put(npc, this);
+        String packageIdStr = npcConfig.conversationId.split("\\.")[0];
+        String conversationIdStr = npcConfig.conversationId.split("\\.")[1];
+        ConversationID conversationId = new ConversationID(
+                Config.getPackages().get(packageIdStr),
+                conversationIdStr
+        );
+
+        conversation.put(npc, conversationId);
     }
 
     public void spawn(Entity entity) {
@@ -147,9 +187,17 @@ public class Room extends RoomRectangle {
         gamePlugin = GamePlugin.getMapPlugin(config.mapId, this);
     }
 
+    public void unloadNPCs() {
+        npcs.forEach(NPC::destroy);
+        npcs.forEach(npc -> npcRoom.remove(npc));
+        npcs.clear();
+    }
+
     public CompletableFuture<Void> deleteRoom() {
         CompletableFuture<Void> faweTaskPromise = new CompletableFuture<>();
         gamePlugin.unload();
+        unloadNPCs();
+
         FaweAPI.getTaskManager().async(()->{
             WeAPI.clearArea(
                     new Location(Bukkit.getServer().getWorld("rooms_empty_sample"),
