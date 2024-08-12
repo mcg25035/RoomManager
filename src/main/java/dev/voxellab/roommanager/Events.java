@@ -23,7 +23,9 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -93,51 +95,51 @@ public class Events implements Listener {
     }
 
 
-    HashMap<Player, Integer> playerBreaksInTime = new HashMap<>();
-    HashMap<Player, Instant> playerLastAlert = new HashMap<>();
-    BukkitTask task = Bukkit.getScheduler().runTaskTimer(Main.getInstance(), () -> {
-        playerBreaksInTime.clear();
-    }, 0, 20 * 5);
+//    HashMap<Player, Integer> playerBreaksInTime = new HashMap<>();
+//    HashMap<Player, Instant> playerLastAlert = new HashMap<>();
+//    BukkitTask task = Bukkit.getScheduler().runTaskTimer(Main.getInstance(), () -> {
+//        playerBreaksInTime.clear();
+//    }, 0, 20 * 5);
+//
+//    @EventHandler
+//    void PlayerInteractEvent(PlayerInteractEvent event) {
+//        if (!event.getPlayer().getScoreboardTags().contains("building-mode")) return;
+//        if (event.getAction() != Action.LEFT_CLICK_BLOCK) return;
+//        if (event.getClickedBlock().getLocation().getBlockY() == -64) return;
+//        int breaks = playerBreaksInTime.getOrDefault(event.getPlayer(), 0);
+//        Instant lastAlert = playerLastAlert.getOrDefault(event.getPlayer(), Instant.MIN);
+//        if (breaks >= 20 && lastAlert.isBefore(Instant.now().minusSeconds(1))) {
+//            playerLastAlert.put(event.getPlayer(), Instant.now());
+//            event.getPlayer().sendMessage(MiniMessage.miniMessage().deserialize(
+//                    "<gold>[<red>快速挖掘</red>]</gold> " +
+//                            "<gradient:gold:red>已達到數量上限，冷卻中...</gradient>"
+//            ));
+//        }
+//        if (breaks >= 20) {
+//            return;
+//        }
+//        playerBreaksInTime.put(event.getPlayer(), breaks + 1);
+//        event.getPlayer().breakBlock(event.getClickedBlock());
+//    }
 
-    @EventHandler
-    void PlayerInteractEvent(PlayerInteractEvent event) {
-        if (!event.getPlayer().getScoreboardTags().contains("building-mode")) return;
-        if (event.getAction() != Action.LEFT_CLICK_BLOCK) return;
-        if (event.getClickedBlock().getLocation().getBlockY() == -64) return;
-        int breaks = playerBreaksInTime.getOrDefault(event.getPlayer(), 0);
-        Instant lastAlert = playerLastAlert.getOrDefault(event.getPlayer(), Instant.MIN);
-        if (breaks >= 20 && lastAlert.isBefore(Instant.now().minusSeconds(1))) {
-            playerLastAlert.put(event.getPlayer(), Instant.now());
-            event.getPlayer().sendMessage(MiniMessage.miniMessage().deserialize(
-                    "<gold>[<red>快速挖掘</red>]</gold> " +
-                            "<gradient:gold:red>已達到數量上限，冷卻中...</gradient>"
-            ));
-        }
-        if (breaks >= 20) {
-            return;
-        }
-        playerBreaksInTime.put(event.getPlayer(), breaks + 1);
-        event.getPlayer().breakBlock(event.getClickedBlock());
-    }
-
-    HashSet<int[]> positions = new HashSet<>();
-    @EventHandler
-    void BlockBreakEvent(BlockBreakEvent event) {
-        if (event.getBlock().getType() != Material.GOLD_BLOCK) return;
-        positions.add(new int[]{
-                event.getBlock().getLocation().getBlockX(),
-                event.getBlock().getLocation().getBlockY(),
-                event.getBlock().getLocation().getBlockZ()
-        });
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        for (int[] i : positions) {
-            sb.append("{").append(i[0]).append(",").append(i[1]).append(",").append(i[2]).append("}");
-            sb.append(",");
-        }
-        sb.append("}");
-        System.out.println(sb);
-    }
+//    HashSet<int[]> positions = new HashSet<>();
+//    @EventHandler
+//    void BlockBreakEvent(BlockBreakEvent event) {
+//        if (event.getBlock().getType() != Material.GOLD_BLOCK) return;
+//        positions.add(new int[]{
+//                event.getBlock().getLocation().getBlockX(),
+//                event.getBlock().getLocation().getBlockY(),
+//                event.getBlock().getLocation().getBlockZ()
+//        });
+//        StringBuilder sb = new StringBuilder();
+//        sb.append("{");
+//        for (int[] i : positions) {
+//            sb.append("{").append(i[0]).append(",").append(i[1]).append(",").append(i[2]).append("}");
+//            sb.append(",");
+//        }
+//        sb.append("}");
+//        System.out.println(sb);
+//    }
 
 
 //    @EventHandler
@@ -145,6 +147,16 @@ public class Events implements Listener {
 //        if (event.getBlock().getLocation().getBlockY() != -64) return;
 //        event.setCancelled(true);
 //    }
+
+    @EventHandler
+    void PlayerJoinEvent(PlayerJoinEvent event) {
+
+    }
+
+    @EventHandler
+    void PlayerQuitEvent(PlayerQuitEvent event) {
+
+    }
 
     @EventHandler
     void EntityDeathEvent(EntityDeathEvent event) {

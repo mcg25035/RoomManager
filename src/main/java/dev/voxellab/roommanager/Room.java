@@ -3,23 +3,23 @@ package dev.voxellab.roommanager;
 import com.fastasyncworldedit.core.FaweAPI;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import dev.voxellab.gameframework.GamePlugin;
+import dev.voxellab.roommanager.annotations.EngineeringMethod;
 import dev.voxellab.roommanager.config.NPCConfig;
+import dev.voxellab.roommanager.exceptions.PlayerInAnotherRoomException;
+import dev.voxellab.roommanager.exceptions.RoomFullException;
 import dev.voxellab.worldedit.WeAPI;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.trait.SkinTrait;
-import org.betonquest.betonquest.BetonQuest;
-import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.conversation.Conversation;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ConversationID;
-import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,6 +35,7 @@ public class Room extends RoomRectangle {
     public static HashMap<Entity, Integer> entityRoom = new HashMap<>();
     public static HashMap<NPC, Room> npcRoom = new HashMap<>();
     public static HashMap<NPC, ConversationID> conversation = new HashMap<>();
+    public static HashMap<Player, BukkitTask> playerQuitTask = new HashMap<>();
     GamePlugin gamePlugin;
 
     public HashSet<Player> joinedPlayers = new HashSet<>();
@@ -96,8 +97,11 @@ public class Room extends RoomRectangle {
 
     public void loadNPC(NPCConfig npcConfig) throws ObjectNotFoundException {
         NPC npc = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, npcConfig.npcName);
-        npc.spawn(fromSample(npcConfig.npcX, npcConfig.npcY, npcConfig.npcZ));
-        SkinTrait skinTrait = npc.getTrait(SkinTrait.class);
+        Location npcSpawnLocation = fromSample(npcConfig.npcX, npcConfig.npcY, npcConfig.npcZ);
+        npcSpawnLocation.setYaw((float) npcConfig.npcYaw);
+        npcSpawnLocation.setPitch((float) npcConfig.npcPitch);
+        npc.spawn(npcSpawnLocation);
+        SkinTrait skinTrait = npc.getOrAddTrait(SkinTrait.class);
         skinTrait.setSkinName(npcConfig.skinName);
         npcs.add(npc);
         npcRoom.put(npc, this);
@@ -121,19 +125,23 @@ public class Room extends RoomRectangle {
                 x - config.mapX1 + innerX1, y, z - config.mapZ1 + innerZ1);
     }
 
-    public boolean join(Player player) {
-        if (joinedPlayers.size() >= playerMax) return false;
-        if (playerRoom.containsKey(player)) return false;
+    public void join(Player player) throws PlayerInAnotherRoomException, RoomFullException {
+        if (joinedPlayers.size() >= playerMax) throw new RoomFullException("");
+        if (playerRoom.containsKey(player)) throw new PlayerInAnotherRoomException("");
         joinedPlayers.add(player);
         playerRoom.put(player, this);
         player.teleport(spawnLocation);
-        return true;
     }
 
     public void leave(Player player) {
         if (!joinedPlayers.contains(player)) return;
         joinedPlayers.remove(player);
         playerRoom.remove(player);
+        RoomsManager.postPlayerLeave(player);
+    }
+
+    public void leaveAll() {
+        joinedPlayers.forEach(this::leave);
     }
 
     public void playerLocationCorrection(Player player) {
@@ -182,6 +190,7 @@ public class Room extends RoomRectangle {
         return faweTaskPromise;
     }
 
+    @EngineeringMethod
     public void reloadPlugin() {
         gamePlugin.unload();
         gamePlugin = GamePlugin.getMapPlugin(config.mapId, this);
@@ -195,8 +204,10 @@ public class Room extends RoomRectangle {
 
     public CompletableFuture<Void> deleteRoom() {
         CompletableFuture<Void> faweTaskPromise = new CompletableFuture<>();
+        this.leaveAll();
+
         gamePlugin.unload();
-        unloadNPCs();
+        this.unloadNPCs();
 
         FaweAPI.getTaskManager().async(()->{
             WeAPI.clearArea(

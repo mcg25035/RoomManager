@@ -1,5 +1,6 @@
 package dev.voxellab.roommanager.config;
 
+import dev.voxellab.roommanager.exceptions.*;
 import dev.voxellab.utils.PointTools;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -31,7 +32,9 @@ public class MapConfig {
 
 
 
-    public static MapConfig load(String filename) {
+    public static MapConfig load(String filename) throws MapConfingNotFoundException {
+        if (!mapConfigPath.resolve(filename).toFile().exists()) throw new MapConfingNotFoundException("");
+
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(mapConfigPath.resolve(filename).toFile());
         MapConfig roomSampleConfig = new MapConfig();
         roomSampleConfig.mapName = yaml.getString("mapName");
